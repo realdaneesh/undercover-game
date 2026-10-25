@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: undercover-server
+    runtime: node
+    plan: free
+    numInstances: 1
+    # Keep the repository root: server/ imports ../shared/ and uses the root lockfile.
+    buildCommand: npm ci --include=dev && npm run build -w server
+    startCommand: npm run start -w server
+    healthCheckPath: /health
+    # Frontend-only and documentation pushes must not restart active rooms.
+    buildFilter:
+      paths:
+        - server/**
+        - shared/**
+        - package.json
+        - package-lock.json
+        - tsconfig.base.json
+        - .nvmrc
+        - render.yaml
+    envVars:
+      - key: NODE_VERSION
+        value: '24'
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: '1'
+      - key: CLIENT_ORIGINS
+        sync: false
